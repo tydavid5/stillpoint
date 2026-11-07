@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stillpoint, a 60-second reset garden</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Stillpoint</h1>
+  <p class="tagline">A 60-second reset garden. Sit still, breathe slow, watch it grow.</p>
+</header>
+
+<div id="demoBanner" class="demo-banner" hidden>
+  DEMO MODE: simulated signals, not real camera readings. Use the sliders below to steer the garden.
+</div>
+
+<main>
+  <section id="consentScreen" class="card">
+    <h2>Before you start</h2>
+    <p>Stillpoint uses your camera on this machine only. The SmartSpectra SDK reads your pulse, breathing, HRV and expressions from the camera feed.</p>
+    <ul>
+      <li>Video is processed locally by the SDK on this machine. No video is stored, uploaded or shared.</li>
+      <li>Telemetry is off. No account, no login, no tracking.</li>
+      <li>Numbers are kept in your browser only if you press Save after a session. Press Delete to remove them.</li>
+      <li>These readings are for general wellness only. They are not a medical diagnosis, and they do not diagnose or treat anything.</li>
+      <li>The camera starts only when you press Start, and stops when you press Stop or the session ends.</li>
+    </ul>
+    <p><strong>For the best reading:</strong> face and upper chest visible, light on your face from the front, sit still, and do not talk during the session.</p>
+    <p><strong>Timing:</strong> pulse takes about 12 seconds, breathing about 30 seconds, HRV about 60 seconds. That is why a session is 60 seconds.</p>
+    <div class="row">
+      <button id="startLiveBtn" class="primary">Start live session</button>
+      <button id="startDemoBtn">Try demo mode</button>
+    </div>
+    <p id="modeNote" class="muted">Live mode needs a camera and a Presage API key on the server. If no key is set, the server runs in demo mode.</p>
+  </section>
+
+  <section id="mainScreen" hidden>
+    <div class="grid">
+      <div class="card garden-card">
+        <canvas id="garden" width="900" height="520"></canvas>
+        <div class="row between">
+          <div>
+            <div id="timerText">60 seconds left</div>
+            <div class="progress"><div id="progressBar"></div></div>
+          </div>
+          <div class="row">
+            <button id="startBtn" class="primary">Start 60 seconds</button>
+            <button id="stopBtn">Stop</button>
+          </div>
+        </div>
+        <p id="statusHint" class="hint">Press Start, sit still, and let the garden listen.</p>
+      </div>
+
+      <div class="card">
+        <h2>Live signals</h2>
+        <canvas id="preview" width="320" height="180"></canvas>
+        <p class="muted">Camera preview from the SDK, small and local.</p>
+        <dl class="signals">
+          <div><dt>Pulse</dt><dd><span id="pulseValue">--</span> BPM, confidence <span id="pulseConf">0</span>%</dd></div>
+          <div><dt>Breathing</dt><dd><span id="breathValue">--</span> breaths per minute, confidence <span id="breathConf">0</span>%</dd></div>
+          <div><dt>HRV RMSSD</dt><dd><span id="hrvRmssd">Waiting until 60s</span></dd></div>
+          <div><dt>HRV SDNN</dt><dd><span id="hrvSdnn">Waiting until 60s</span></dd></div>
+          <div><dt>Stress index</dt><dd><span id="hrvStress">Waiting until 60s</span></dd></div>
+          <div><dt>HRV confidence</dt><dd><span id="hrvConf">0</span>%</dd></div>
+          <div><dt>Expression</dt><dd><span id="topExpr">--</span></dd></div>
+          <div><dt>Blink</dt><dd><span id="blinkInd">No</span></dd></div>
+          <div><dt>Talking</dt><dd><span id="talkingInd">No</span></dd></div>
+          <div><dt>Motion</dt><dd><span id="motionValue">0</span></dd></div>
+        </dl>
+        <p class="muted">Baseline is the first 10 seconds. The end is the last 10 seconds. Your score compares you with you, not with anyone else.</p>
+      </div>
+    </div>
+
+    <div id="demoControls" class="card" hidden>
+      <h2>Demo controls</h2>
+      <p><strong>Demo only.</strong> These sliders make simulated signals. They do not read your camera.</p>
+      <label>Breathing rate: <span id="breathSliderVal">12</span> breaths per minute
+        <input id="breathSlider" type="range" min="5" max="20" value="12" step="1">
+      </label>
+      <label>Pulse: <span id="pulseSliderVal">72</span> BPM
+        <input id="pulseSlider" type="range" min="50" max="100" value="72" step="1">
+      </label>
+      <label>Smile: <span id="smileSliderVal">30</span>%
+        <input id="smileSlider" type="range" min="0" max="100" value="30" step="1">
+      </label>
+      <div class="row">
+        <button id="surpriseBtn">Surprise</button>
+        <button id="neutralBtn">Neutral</button>
+        <button id="talkingBtn">Talking: off</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="resultsScreen" class="card" hidden>
+    <h2>Your reset</h2>
+    <p class="score"><span id="scoreValue">--</span> <span class="muted">out of 100</span></p>
+    <p id="scoreWords"></p>
+    <dl class="signals">
+      <div><dt>Breathing, start</dt><dd><span id="startBreath">--</span></dd></div>
+      <div><dt>Breathing, end</dt><dd><span id="endBreath">--</span></dd></div>
+      <div><dt>Pulse, start</dt><dd><span id="startPulse">--</span></dd></div>
+      <div><dt>Pulse, end</dt><dd><span id="endPulse">--</span></dd></div>
+      <div><dt>Stress index, start</dt><dd><span id="startStress">--</span></dd></div>
+      <div><dt>Stress index, end</dt><dd><span id="endStress">--</span></dd></div>
+      <div><dt>Smile, average</dt><dd><span id="avgSmile">--</span>%</dd></div>
+      <div><dt>Garden grown</dt><dd><span id="gardenGrown">--</span>%</dd></div>
+    </dl>
+    <h3>How the score is made, in plain words</h3>
+    <p>Breathing is worth up to 40 points. If your breathing slowed, you score above 20. If it stayed the same, you score 20. If it got faster, you score below 20. Pulse is worth up to 30 points, in the same way. Stress index is worth up to 20 points, or 10 if HRV was not ready yet. A smile adds up to 10 points. Talking or moving a lot takes points away, up to 10. Nothing here is a medical score. It only compares your end with your own start.</p>
+    <div class="row">
+      <button id="saveBtn" class="primary">Save summary</button>
+      <button id="deleteBtn">Delete saved summaries</button>
+      <button id="againBtn">Play again</button>
+    </div>
+    <p id="saveNote" class="muted"></p>
+    <div id="savedList"></div>
+  </section>
+</main>
+
+<footer>
+  <p class="muted">Stillpoint is a Presage SmartSpectra SDK Challenge entry. Readings are for general wellness only, not a medical diagnosis. Video is not stored. Telemetry is off.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
